@@ -92,16 +92,9 @@ router.post('/delete-order', async (req, res) => {
       return;
     }
 
-    // make sure an order exists in the database with that id
-    const targetOrder = await Order.findOne({ _id: req.body.id });
-    if (!targetOrder) {
-      res.status(400).json({ success: false, error: 'No order exists with that id!' });
-      return;
-    }
-
-    const deleteResponse = await Order.deleteOne({ _id: req.body.id });
-    if (!deleteResponse || !deleteResponse.n) {
-      res.status(400).json({ success: false, error: 'Unable to delete from database' });
+    const deleteResponse = await Order.findOneAndDelete({ _id: req.body.id });
+    if (!deleteResponse) {
+      res.status(400).json({ success: false, error: 'Document not found with provided ID' });
       return;
     }
 
@@ -124,6 +117,20 @@ router.delete('/delete-all', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, error });
   }
+});
+
+router.get('/:id', async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(204).json({ success: false, error: "Query returned no results"});
+  }
+
+  return res.status(200).json({
+    success: true,
+    order_item: order.order_item,
+    quantity: order.quantity
+  });
 });
 
 module.exports = router;
